@@ -1,0 +1,51 @@
+# ==============================================================================
+# GuardianVision AI — Python Dependencies
+# Tested on Python 3.10 / 3.11
+# ==============================================================================
+
+# ---- Computer Vision / Detection ----
+ultralytics==8.3.40
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+
+# ---- Object Tracking ----
+lap==0.5.12
+cython-bbox==0.1.5
+
+# ---- Deep Learning backend ----
+torch==2.5.1
+torchvision==0.20.1
+
+# ---- API Layer ----
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+python-multipart==0.0.19
+
+# ---- Dashboard ----
+streamlit==1.40.2
+plotly==5.24.1
+
+# ---- Data / Storage ----
+numpy==1.26.4
+pandas==2.2.3
+pyyaml==6.0.2
+sqlalchemy==2.0.36
+
+# ---- Visualization ----
+matplotlib==3.9.3
+pillow==11.0.0
+
+# ---- Logging / Config ----
+loguru==0.7.3
+python-dotenv==1.0.1
+
+# ---- Testing ----
+pytest==8.3.4
+pytest-cov==6.0.0
+httpx==0.28.1
+
+# ---- Code Quality ----
+black==24.10.0
+flake8==7.1.1
+mypy==1.13.0
