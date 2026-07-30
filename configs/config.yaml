@@ -1,0 +1,142 @@
+# ==============================================================================
+# GuardianVision AI — Central Configuration
+# All runtime parameters are controlled from this file.
+# Environment-specific overrides can be supplied via .env (see .env.example)
+# ==============================================================================
+
+project:
+  name: "GuardianVision AI"
+  version: "1.0.0"
+  environment: "development"   # development | staging | production
+
+# ------------------------------------------------------------------------------
+# Detection Model
+# ------------------------------------------------------------------------------
+detection:
+  model_path: "models/guardianvision_ppe.pt"
+  model_type: "yolo11"
+  confidence_threshold: 0.45
+  iou_threshold: 0.50
+  device: "cpu"                # cpu | cuda:0 | mps
+  image_size: 640
+  half_precision: false
+
+  # Class map — index must match the trained model's class order
+  classes:
+    0: "person"
+    1: "helmet"
+    2: "no_helmet"
+    3: "vest"
+    4: "no_vest"
+    5: "gloves"
+    6: "no_gloves"
+    7: "goggles"
+    8: "no_goggles"
+    9: "safety_shoes"
+    10: "mask"
+    11: "no_mask"
+
+  # PPE items required per worker for a "compliant" status.
+  # A worker missing any required item is flagged as a violation.
+  required_ppe:
+    - helmet
+    - vest
+    - gloves
+
+# ------------------------------------------------------------------------------
+# Multi-Object Tracking (ByteTrack)
+# ------------------------------------------------------------------------------
+tracking:
+  algorithm: "bytetrack"
+  track_thresh: 0.5
+  track_buffer: 30
+  match_thresh: 0.8
+  frame_rate: 25
+  min_box_area: 100
+
+# ------------------------------------------------------------------------------
+# Violation Rule Engine
+# ------------------------------------------------------------------------------
+violation_engine:
+  grace_period_frames: 15        # avoid false positives from momentary occlusion
+  violation_cooldown_seconds: 30 # avoid duplicate alerts for the same worker
+  risk_levels:
+    helmet: "high"
+    vest: "medium"
+    gloves: "low"
+    goggles: "medium"
+    safety_shoes: "medium"
+    mask: "low"
+
+# ------------------------------------------------------------------------------
+# Zones (per-camera restricted / monitored areas)
+# ------------------------------------------------------------------------------
+zones:
+  - id: "zone_a"
+    name: "Assembly Line A"
+    camera_id: "cam_01"
+    required_ppe: ["helmet", "vest", "gloves", "goggles"]
+  - id: "zone_b"
+    name: "Warehouse Loading Bay"
+    camera_id: "cam_02"
+    required_ppe: ["helmet", "vest"]
+
+# ------------------------------------------------------------------------------
+# Cameras
+# ------------------------------------------------------------------------------
+cameras:
+  - id: "cam_01"
+    name: "Assembly Line A - North"
+    source: 0                      # 0 = default webcam, or RTSP/HTTP URL
+    zone_id: "zone_a"
+    enabled: true
+  - id: "cam_02"
+    name: "Warehouse Loading Bay"
+    source: "assets/videos/sample_warehouse.mp4"
+    zone_id: "zone_b"
+    enabled: true
+
+# ------------------------------------------------------------------------------
+# Alerts & Incident Logging
+# ------------------------------------------------------------------------------
+alerts:
+  save_screenshot: true
+  screenshot_dir: "reports/screenshots"
+  enable_sound: false
+  notify_webhook: null            # optional Slack/Teams webhook URL
+
+reports:
+  database_path: "reports/guardian_vision.db"
+  csv_export_path: "reports/incidents.csv"
+  json_export_path: "reports/incidents.json"
+  retention_days: 90
+
+# ------------------------------------------------------------------------------
+# API
+# ------------------------------------------------------------------------------
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false
+  cors_origins:
+    - "http://localhost:8501"
+    - "http://localhost:3000"
+
+# ------------------------------------------------------------------------------
+# Dashboard
+# ------------------------------------------------------------------------------
+dashboard:
+  host: "0.0.0.0"
+  port: 8501
+  theme: "dark"
+  refresh_interval_seconds: 2
+
+# ------------------------------------------------------------------------------
+# Logging
+# ------------------------------------------------------------------------------
+logging:
+  level: "INFO"                   # DEBUG | INFO | WARNING | ERROR
+  log_dir: "logs"
+  rotation: "10 MB"
+  retention: "14 days"
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}"
