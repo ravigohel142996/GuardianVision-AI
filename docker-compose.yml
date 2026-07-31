@@ -1,0 +1,64 @@
+# ==============================================================================
+# GuardianVision AI — Docker Compose
+# Runs the API and Dashboard as separate services sharing the same image,
+# with persistent volumes for models, reports, and logs.
+# ==============================================================================
+
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: guardianvision-ai:latest
+    container_name: guardianvision-api
+    command: ["python", "main.py", "--mode", "api"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./assets:/app/assets
+      - ./configs:/app/configs
+    environment:
+      - APP_ENV=production
+      - CONFIG_PATH=configs/config.yaml
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/status')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: guardianvision-ai:latest
+    container_name: guardianvision-dashboard
+    command: ["python", "main.py", "--mode", "dashboard"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - ./assets:/app/assets
+      - ./configs:/app/configs
+    environment:
+      - APP_ENV=production
+      - CONFIG_PATH=configs/config.yaml
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  default:
+    name: guardianvision-network
